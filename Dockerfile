@@ -23,5 +23,6 @@ RUN uv pip compile pyproject.toml -o requirements.txt
 RUN uv pip install --system -r requirements.txt
 
 # Default: run the SERVICE
+ENV PYTHONPATH=/app/src
 ENV PORT=8080
 CMD ["uvicorn", "scheduler_orchestrator.service:app", "--host", "0.0.0.0", "--port", "8080"]
