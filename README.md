@@ -1,6 +1,6 @@
 # scheduler-orchestrator
 
-**Schedules each finished video to six social platforms from one spreadsheet row.**
+**Last-mile delivery for high-volume content: finished assets go out to six platforms on schedule, tracked per asset, with the team in control from one sheet.**
 
 A content team fills in a "Script View" Google Sheet: one row per post, with captions, media links and target times. This service reads those rows and schedules each post to **YouTube, Instagram, TikTok, Facebook, X and Threads** through a posting executor API. It then writes each platform's job ID and scheduled time back to the sheet, so the sheet always shows what's actually queued.
 
