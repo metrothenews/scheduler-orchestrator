@@ -23,3 +23,6 @@ class Settings(BaseSettings):
     ORCHESTRATOR_JOB_NAME: str | None = None
     GCP_REGION: str = "us-east1"
     GCP_PROJECT: str | None = None
+
+    # Optional shared key for POST /v1/run (sent as X-API-Key). Use this or Cloud Run IAM.
+    TRIGGER_API_KEY: str | None = None

@@ -47,6 +47,7 @@ flowchart LR
 - `ORCHESTRATOR_JOB_NAME` (Cloud Run Job name, e.g. `scheduler-orchestrator-job`)
 - `GCP_REGION` (default: `us-east1`)
 - `GCP_PROJECT` (optional; falls back to `GOOGLE_CLOUD_PROJECT`)
+- `TRIGGER_API_KEY` (optional; if set, `POST /v1/run` requires a matching `X-API-Key` header)
 
 ## Script View contract (expected keys in config block)
 
@@ -90,7 +91,7 @@ gcloud run jobs deploy scheduler-orchestrator-job \
 gcloud run deploy scheduler-orchestrator \
   --source . \
   --region us-east1 \
-  --allow-unauthenticated \
+  --no-allow-unauthenticated \
   --set-env-vars ORCHESTRATOR_JOB_NAME="scheduler-orchestrator-job" \
   --set-env-vars SHEETS_JSON_URL="https://YOUR-SHEETS-JSON-GATEWAY.a.run.app" \
   --set-env-vars SHEETS_JSON_API_KEY="REDACTED"
@@ -115,9 +116,12 @@ gcloud run jobs add-iam-policy-binding scheduler-orchestrator-job \
 
 ```bash
 curl -sS -X POST "https://YOUR_SERVICE_URL/v1/run" \
+  -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
   -H "Content-Type: application/json" \
   -d '{"command":"scheduler-orchestrator-run"}'
 ```
+
+The service is deployed with Cloud Run IAM, so callers need `roles/run.invoker` and an identity token. If a caller can't send one (for example a simple webhook), deploy with `--allow-unauthenticated` **and** set `TRIGGER_API_KEY`; requests must then send a matching `X-API-Key` header or get `401`.
 
 ## Notes
 

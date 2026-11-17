@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import hmac
 import os
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
 import google.auth
@@ -29,11 +30,15 @@ def _project_id(settings: Settings) -> str:
 
 
 @app.post("/v1/run")
-def run(req: RunRequest) -> dict[str, Any]:
+def run(req: RunRequest, x_api_key: str | None = Header(default=None)) -> dict[str, Any]:
     if req.command != "scheduler-orchestrator-run":
         raise HTTPException(status_code=400, detail="Invalid command")
 
     settings = Settings()
+
+    expected = (settings.TRIGGER_API_KEY or "").strip()
+    if expected and not (x_api_key and hmac.compare_digest(x_api_key, expected)):
+        raise HTTPException(status_code=401, detail="missing or invalid X-API-Key")
 
     if not settings.ORCHESTRATOR_JOB_NAME:
         raise HTTPException(status_code=500, detail="Missing ORCHESTRATOR_JOB_NAME env var")
