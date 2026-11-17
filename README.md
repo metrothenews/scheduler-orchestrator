@@ -26,6 +26,15 @@ flowchart LR
 
 **Stack:** Python 3.11 · FastAPI · httpx · pydantic-settings · Google Cloud Run (Service + Job) · Docker
 
+## Applications at scale
+
+- **The distribution layer for high-volume content.** Generating video is only half of a content pipeline; publishing it reliably to six platforms, each with its own timing, is the other half. This service is that last mile, and it's content-agnostic: human-made or AI-generated posts go through the same contract.
+- **Multi-tenant content operations.** One deployment is driven entirely by which sheet it's pointed at, so each brand, artist or client is a spreadsheet, not a code change. That's the model for an agency or a creator-tools product.
+- **Agent-triggerable.** The whole run starts from one authenticated HTTP call and reports back in structured rows, so an AI agent can own "publish this week's content" end to end while people keep approval rights in the sheet.
+- **Serverless economics.** Service and job scale to zero between runs; cost tracks usage.
+
+**What it demonstrates:** event-driven serverless architecture, idempotent scheduling, distributed locking, retries and backoff, clean service boundaries, config-as-data.
+
 ## Environment variables (bootstrap)
 
 ### Required (Service + Job)
