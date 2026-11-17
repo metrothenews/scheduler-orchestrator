@@ -1,18 +1,37 @@
 # scheduler-orchestrator
 
-Cloud Run **Service + Job**:
+**Schedules each finished video to six social platforms from one spreadsheet row.**
 
-- **Service**: `POST /v1/run` (fast trigger) -> starts a Cloud Run **Job** execution and returns immediately.
-- **Job**: long-running loop: reads `Script View` via **sheets-json**, schedules per-platform via **post-executor**, writes back status, and sleeps between rows.
+A content team fills in a "Script View" Google Sheet: one row per post, with captions, media links and target times. This service reads those rows and schedules each post to **YouTube, Instagram, TikTok, Facebook, X and Threads** through a posting executor API. It then writes each platform's job ID and scheduled time back to the sheet, so the sheet always shows what's actually queued.
 
-This repo intentionally **never talks to the Google Sheets API** directly.
+It is the last stage of the video pipeline: [sf-production-app](https://github.com/metrothenews/sf-production-app) renders the edits, and this publishes them.
+
+```mermaid
+flowchart LR
+    T[POST /v1/run] --> S[Cloud Run Service<br/>FastAPI]
+    S -->|starts execution| J[Cloud Run Job<br/>long-running loop]
+    J -->|read config + rows, take lock| G[sheets-json-gateway]
+    G --> SH[(Google Sheet<br/>Script View)]
+    J -->|schedule per platform| P[post-executor API]
+    J -->|write back job IDs + times| G
+```
+
+**Highlights**
+
+- **Fast trigger, long-running job.** The HTTP service returns immediately and hands the slow work to a Cloud Run Job execution, so callers (cron, a button, another agent) never wait on a request timeout.
+- **Deterministic jitter.** Each platform's post time is offset by a jitter derived from a SHA-256 of `(post_id, platform, base_time)`. Posts look natural, and re-running gives the same schedule (idempotent).
+- **Sheet-level locking with TTL.** A lock cell stops two triggers from processing the same rows at once. It expires on its own if a run crashes.
+- **Config lives in the sheet.** Delays, jitter ranges, time zone and endpoints are key/value rows the content team can change without a redeploy.
+- **Clean boundaries.** This service never talks to the Sheets API directly. All reads and writes go through [sheets-json-gateway](https://github.com/metrothenews/sheets-json-gateway). Retries use `tenacity`.
+
+**Stack:** Python 3.11 · FastAPI · httpx · pydantic-settings · Google Cloud Run (Service + Job) · Docker
 
 ## Environment variables (bootstrap)
 
 ### Required (Service + Job)
 
 - `SHEETS_JSON_URL` (example: `https://YOUR-SHEETS-JSON-GATEWAY.a.run.app`)
-- `SCRIPT_VIEW_SHEET_ID` (default in code: `YOUR_GOOGLE_SHEET_ID`)
+- `SCRIPT_VIEW_SHEET_ID` (the ID of your Script View sheet)
 - `SCRIPT_VIEW_TAB_NAME` (default: `Script View`)
 
 ### Optional
