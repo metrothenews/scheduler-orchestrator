@@ -89,7 +89,7 @@ gcloud run jobs deploy scheduler-orchestrator-job \
   --command python \
   --args -m,scheduler_orchestrator.job \
   --set-env-vars SHEETS_JSON_URL="https://YOUR-SHEETS-JSON-GATEWAY.a.run.app" \
-  --set-env-vars SHEETS_JSON_API_KEY="REDACTED" \
+  --set-env-vars SHEETS_JSON_API_KEY="<gateway-api-key>" \
   --set-env-vars SCRIPT_VIEW_SHEET_ID="YOUR_GOOGLE_SHEET_ID" \
   --set-env-vars SCRIPT_VIEW_TAB_NAME="Script View"
 ```
@@ -103,7 +103,7 @@ gcloud run deploy scheduler-orchestrator \
   --no-allow-unauthenticated \
   --set-env-vars ORCHESTRATOR_JOB_NAME="scheduler-orchestrator-job" \
   --set-env-vars SHEETS_JSON_URL="https://YOUR-SHEETS-JSON-GATEWAY.a.run.app" \
-  --set-env-vars SHEETS_JSON_API_KEY="REDACTED"
+  --set-env-vars SHEETS_JSON_API_KEY="<gateway-api-key>"
 ```
 
 ### 3) Allow the Service's runtime identity to execute the Job
